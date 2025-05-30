@@ -106,7 +106,7 @@ You're in [3,3] with NO breeze, stench, or glitter
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/wumpus-world-proposal.git
+   git clone https://github.com/0x4ab99BA/wumpus-world-proposal.git
    cd wumpus-world-proposal
    ```
 

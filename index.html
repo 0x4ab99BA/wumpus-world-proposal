@@ -1,63 +1,170 @@
-<!-- <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + TS</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
-</html> -->
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wumpus World - Marriage Proposal Game</title>
+    <title>💕 Wumpus World - 浪漫求婚游戏 💕</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             margin: 0;
             padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            font-family: 'Arial', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            color: white;
         }
         
         h1 {
             color: white;
             text-align: center;
             margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            font-size: 2.5em;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
         
         #game-container {
-            border: 3px solid #fff;
-            border-radius: 10px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 4px solid #fff;
+            border-radius: 15px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
         }
         
         .instructions {
             color: white;
             text-align: center;
-            margin-top: 20px;
-            max-width: 600px;
+            margin-top: 25px;
+            max-width: 700px;
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        .instructions h3 {
+            margin-bottom: 15px;
+            color: #FFD700;
+            font-size: 1.3em;
+        }
+        
+        .instructions p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        
+        .game-rules {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .rule-item {
+            background: rgba(255,255,255,0.1);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #FFD700;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+        
+        .heart {
+            animation: float 3s ease-in-out infinite;
+            display: inline-block;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .game-rules {
+                grid-template-columns: 1fr;
+            }
+            
+            .instructions {
+                padding: 15px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>💕 Wumpus World Adventure 💕</h1>
+    <h1>
+        <span class="heart">💕</span> 
+        Wumpus World 浪漫冒险 
+        <span class="heart">💕</span>
+    </h1>
+    
     <div id="game-container"></div>
+    
     <div class="instructions">
-        <p>点击箭头按钮来移动角色，找到金子完成冒险！</p>
-        <p>小心避开陷阱和Wumpus怪物！</p>
+        <h3>🎯 游戏目标</h3>
+        <p>在神秘的4x4世界中寻找珍贵的金子 🏆，当你找到它时，一个特别的惊喜在等着你！</p>
+        
+        <div class="game-rules">
+            <div class="rule-item">
+                <strong>🎮 操作方式</strong><br>
+                点击屏幕上的方向按钮移动角色
+            </div>
+            <div class="rule-item">
+                <strong>💨 微风</strong><br>
+                附近有陷阱的警告信号
+            </div>
+            <div class="rule-item">
+                <strong>🦨 恶臭</strong><br>
+                Wumpus怪物就在附近
+            </div>
+            <div class="rule-item">
+                <strong>✨ 闪光</strong><br>
+                金子就在当前房间！
+            </div>
+        </div>
+        
+        <p style="margin-top: 20px; color: #FFB6C1;">
+            <strong>💡 提示：</strong> 
+            利用感知信息进行逻辑推理，安全地找到金子的位置。
+            避开陷阱 🕳️ 和可怕的Wumpus 👹，完成这场浪漫的冒险！
+        </p>
     </div>
+    
+    <div class="footer">
+        <p>Made with ❤️ for unforgettable moments</p>
+        <p>🎮 享受游戏，享受爱情！</p>
+    </div>
+    
     <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
