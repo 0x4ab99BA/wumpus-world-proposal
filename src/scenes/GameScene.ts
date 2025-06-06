@@ -13,8 +13,10 @@ interface GameState {
     pits: { x: number; y: number }[];
     gameOver: boolean;
     foundGold: boolean;
-    wumpusAlive: boolean; // 新增：跟踪Wumpus是否存活
+    wumpusAlive: boolean;
 }
+
+type Direction = 'up' | 'down' | 'left' | 'right';
 
 export default class GameScene extends Phaser.Scene {
     private gameState: GameState;
@@ -34,7 +36,7 @@ export default class GameScene extends Phaser.Scene {
     // Grid visualization
     private gridCells: Phaser.GameObjects.Rectangle[][] = [];
     private perceptIcons: Phaser.GameObjects.Text[][] = [];
-    private attackIcons: { left: Phaser.GameObjects.Text; right: Phaser.GameObjects.Text } | null = null;
+    private attackIcons: { [key in Direction]?: Phaser.GameObjects.Text } = {};
     private isMoving: boolean = false;
 
     constructor() {
@@ -51,7 +53,7 @@ export default class GameScene extends Phaser.Scene {
             pits: [],
             gameOver: false,
             foundGold: false,
-            wumpusAlive: true // 初始时Wumpus是活着的
+            wumpusAlive: true
         };
     }
 
@@ -234,7 +236,7 @@ export default class GameScene extends Phaser.Scene {
         });
 
         // 添加攻击说明
-        this.add.text(160, 550, '🗡️ 攻击说明：点击攻击图标可攻击相邻格子的Wumpus', {
+        this.add.text(160, 550, '🗡️ 攻击说明：当感知到恶臭时，点击攻击图标可攻击相邻格子的Wumpus', {
             fontSize: '12px',
             color: '#ffffff',
             backgroundColor: '#2196F3',
@@ -243,117 +245,167 @@ export default class GameScene extends Phaser.Scene {
     }
 
     private createAttackIcons(): void {
-        // 创建左右攻击图标，初始时隐藏
-        const playerScreenPos = this.gridToScreenPosition(this.gameState.playerGridX, this.gameState.playerGridY);
-        
-        // 左侧攻击图标
-        const leftAttackIcon = this.add.text(
-            playerScreenPos.x - 70, 
-            playerScreenPos.y + 30, 
-            '⚔️', 
-            {
-                fontSize: '32px',
-                backgroundColor: '#FF5722',
-                padding: { x: 8, y: 4 }
-            }
-        ).setOrigin(0.5).setInteractive({ useHandCursor: true }).setVisible(false);
-
-        // 右侧攻击图标
-        const rightAttackIcon = this.add.text(
-            playerScreenPos.x + 70, 
-            playerScreenPos.y + 30, 
-            '⚔️', 
-            {
-                fontSize: '32px',
-                backgroundColor: '#FF5722',
-                padding: { x: 8, y: 4 }
-            }
-        ).setOrigin(0.5).setInteractive({ useHandCursor: true }).setVisible(false);
-
-        // 设置攻击图标事件
-        leftAttackIcon.on('pointerdown', () => this.handleAttack('left'));
-        rightAttackIcon.on('pointerdown', () => this.handleAttack('right'));
-
-        // 悬停效果
-        leftAttackIcon.on('pointerover', () => {
-            leftAttackIcon.setStyle({ backgroundColor: '#D32F2F' });
-        });
-        leftAttackIcon.on('pointerout', () => {
-            leftAttackIcon.setStyle({ backgroundColor: '#FF5722' });
-        });
-
-        rightAttackIcon.on('pointerover', () => {
-            rightAttackIcon.setStyle({ backgroundColor: '#D32F2F' });
-        });
-        rightAttackIcon.on('pointerout', () => {
-            rightAttackIcon.setStyle({ backgroundColor: '#FF5722' });
-        });
-
-        this.attackIcons = {
-            left: leftAttackIcon,
-            right: rightAttackIcon
+        const directions: Direction[] = ['up', 'down', 'left', 'right'];
+        const attackIconStyle = {
+            fontSize: '28px',
+            backgroundColor: '#FF5722',
+            padding: { x: 6, y: 4 }
         };
+
+        directions.forEach(direction => {
+            const attackIcon = this.add.text(0, 0, '⚔️', attackIconStyle)
+                .setOrigin(0.5)
+                .setInteractive({ useHandCursor: true })
+                .setVisible(false);
+
+            // 设置攻击图标事件
+            attackIcon.on('pointerdown', () => this.handleAttack(direction));
+
+            // 悬停效果
+            attackIcon.on('pointerover', () => {
+                attackIcon.setStyle({ backgroundColor: '#D32F2F' });
+            });
+            attackIcon.on('pointerout', () => {
+                attackIcon.setStyle({ backgroundColor: '#FF5722' });
+            });
+
+            this.attackIcons[direction] = attackIcon;
+        });
     }
 
     private updateAttackIcons(): void {
         if (!this.attackIcons) return;
 
         const playerScreenPos = this.gridToScreenPosition(this.gameState.playerGridX, this.gameState.playerGridY);
-        
-        // 更新攻击图标位置
-        this.attackIcons.left.setPosition(playerScreenPos.x - 70, playerScreenPos.y + 30);
-        this.attackIcons.right.setPosition(playerScreenPos.x + 70, playerScreenPos.y + 30);
+        const iconOffset = 60;
 
-        // 检查是否有相邻的Wumpus可以攻击
-        const canAttackLeft = this.canAttackDirection('left');
-        const canAttackRight = this.canAttackDirection('right');
+        // 定义每个方向的偏移位置
+        const iconPositions: { [key in Direction]: { x: number; y: number } } = {
+            up: { x: playerScreenPos.x, y: playerScreenPos.y - iconOffset },
+            down: { x: playerScreenPos.x, y: playerScreenPos.y + iconOffset + 30 },
+            left: { x: playerScreenPos.x - iconOffset, y: playerScreenPos.y + 15 },
+            right: { x: playerScreenPos.x + iconOffset, y: playerScreenPos.y + 15 }
+        };
 
-        // 显示/隐藏攻击图标
-        this.attackIcons.left.setVisible(canAttackLeft && this.gameState.wumpusAlive);
-        this.attackIcons.right.setVisible(canAttackRight && this.gameState.wumpusAlive);
+        // 检查是否感知到恶臭（这表示Wumpus在相邻位置）
+        const hasStench = this.gameState.wumpusAlive && 
+            this.isAdjacent(
+                this.gameState.playerGridX, 
+                this.gameState.playerGridY, 
+                this.gameState.wumpusGridX, 
+                this.gameState.wumpusGridY
+            );
+
+        // 更新每个方向的攻击图标
+        (['up', 'down', 'left', 'right'] as Direction[]).forEach(direction => {
+            const icon = this.attackIcons[direction];
+            if (!icon) return;
+
+            // 更新图标位置
+            icon.setPosition(iconPositions[direction].x, iconPositions[direction].y);
+
+            // 只要感知到恶臭且该方向在边界内，就显示攻击图标
+            // 让玩家通过逻辑推理来判断Wumpus的具体位置
+            const canShowAttack = hasStench && this.isDirectionInBounds(direction);
+
+            // 显示/隐藏攻击图标
+            icon.setVisible(canShowAttack);
+        });
     }
 
-    private canAttackDirection(direction: 'left' | 'right'): boolean {
+    private canAttackDirection(direction: Direction): boolean {
         const { playerGridX, playerGridY } = this.gameState;
         let targetX = playerGridX;
+        let targetY = playerGridY;
 
-        if (direction === 'left') {
-            targetX = playerGridX - 1;
-        } else {
-            targetX = playerGridX + 1;
+        switch (direction) {
+            case 'up':
+                targetY = playerGridY + 1;
+                break;
+            case 'down':
+                targetY = playerGridY - 1;
+                break;
+            case 'left':
+                targetX = playerGridX - 1;
+                break;
+            case 'right':
+                targetX = playerGridX + 1;
+                break;
         }
 
         // 检查目标位置是否在边界内
-        if (targetX < 1 || targetX > this.gridSize) {
+        if (targetX < 1 || targetX > this.gridSize || targetY < 1 || targetY > this.gridSize) {
             return false;
         }
 
         // 检查目标位置是否有Wumpus
         return targetX === this.gameState.wumpusGridX && 
-               playerGridY === this.gameState.wumpusGridY && 
+               targetY === this.gameState.wumpusGridY && 
                this.gameState.wumpusAlive;
     }
 
-    private async handleAttack(direction: 'left' | 'right'): Promise<void> {
-        if (this.isMoving || this.gameState.gameOver || this.gameState.foundGold || !this.gameState.wumpusAlive) {
-            return;
-        }
+    private isDirectionInBounds(direction: Direction): boolean {
+        const { playerGridX, playerGridY } = this.gameState;
 
-        // 检查是否可以攻击
-        if (!this.canAttackDirection(direction)) {
-            this.showMessage('🚫 这个方向没有Wumpus可以攻击！', 0xFF5722);
+        switch (direction) {
+            case 'up':
+                return playerGridY < this.gridSize;
+            case 'down':
+                return playerGridY > 1;
+            case 'left':
+                return playerGridX > 1;
+            case 'right':
+                return playerGridX < this.gridSize;
+        }
+    }
+
+    private async handleAttack(direction: Direction): Promise<void> {
+        if (this.isMoving || this.gameState.gameOver || this.gameState.foundGold || !this.gameState.wumpusAlive) {
             return;
         }
 
         this.isMoving = true;
 
+        // 根据攻击方向调整角色朝向
+        this.adjustCharacterFacing(direction);
+
         // 播放攻击动画
         await this.lady.playAttack();
 
-        // 杀死Wumpus
-        this.killWumpus();
+        // 检查攻击是否命中Wumpus
+        if (this.canAttackDirection(direction)) {
+            // 攻击命中，杀死Wumpus
+            this.killWumpus();
+            this.showMessage('⚔️ 攻击命中！成功击杀Wumpus！', 0x4CAF50);
+        } else {
+            // 攻击落空
+            this.showMessage(`🎯 ${this.getDirectionName(direction)}方向攻击落空！Wumpus不在那里！`, 0xFF9800);
+        }
 
         this.isMoving = false;
+    }
+
+    private adjustCharacterFacing(direction: Direction): void {
+        // 根据攻击方向调整角色的朝向
+        switch (direction) {
+            case 'left':
+                this.lady.setFlipX(true); // 朝左
+                break;
+            case 'right':
+                this.lady.setFlipX(false); // 朝右
+                break;
+            // 上下方向保持当前朝向
+        }
+    }
+
+    private getDirectionName(direction: Direction): string {
+        const directionNames: { [key in Direction]: string } = {
+            up: '上',
+            down: '下',
+            left: '左',
+            right: '右'
+        };
+        return directionNames[direction];
     }
 
     private killWumpus(): void {
@@ -406,8 +458,8 @@ export default class GameScene extends Phaser.Scene {
             onComplete: () => killText.destroy()
         });
 
-        // 显示击杀消息
-        this.showMessage('⚔️ 成功击杀Wumpus！现在可以安全探索了！', 0x4CAF50);
+        // 显示击杀消息（只在killWumpus内部显示，避免重复）
+        // this.showMessage('⚔️ 成功击杀Wumpus！现在可以安全探索了！', 0x4CAF50);
 
         // 隐藏攻击图标
         this.updateAttackIcons();
