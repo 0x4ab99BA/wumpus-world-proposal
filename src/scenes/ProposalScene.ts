@@ -32,7 +32,7 @@ export default class ProposalScene extends Phaser.Scene {
         // 显示求婚动画
         this.showProposalAnimation();
         
-        // 创建各种掉落效果
+        // 创建各种掉落效果（降低频率）
         this.createJewelryRain();
         this.createHouseRain();
         this.createAnimalRain();
@@ -278,42 +278,74 @@ export default class ProposalScene extends Phaser.Scene {
     }
 
     private showProposalAnimation(): void {
-        // 显示名字
+        // 显示名字 - 使用更艺术的字体和渐变效果
         this.add.text(400, 150, '李晨琳', {
-            fontSize: '48px',
-            fontFamily: 'Arial, "Microsoft YaHei", sans-serif',
+            fontSize: '56px',
+            fontFamily: 'Georgia, "Times New Roman", "Microsoft YaHei", serif',
             color: '#FFE4E1',
             align: 'center',
-            shadow: {
-                offsetX: 2,
-                offsetY: 2,
-                color: '#9370DB',
-                blur: 8,
-                fill: true
-            }
-        }).setOrigin(0.5);
-
-        // 求婚文字
-        const proposalText = this.add.text(400, 250, '你愿意嫁给我吗？', {
-            fontSize: '48px',
-            fontFamily: 'Arial, "Microsoft YaHei", sans-serif',
-            color: '#FFD700',
-            align: 'center',
+            fontStyle: 'italic bold',
             shadow: {
                 offsetX: 3,
                 offsetY: 3,
                 color: '#9370DB',
-                blur: 10,
+                blur: 12,
                 fill: true
             }
         }).setOrigin(0.5);
 
-        // 脉动动画
+        // 添加名字的光晕效果
+        const nameGlow = this.add.circle(400, 150, 80, 0xFFE4E1, 0.2);
+        this.tweens.add({
+            targets: nameGlow,
+            alpha: { from: 0.2, to: 0.4 },
+            scaleX: { from: 1, to: 1.2 },
+            scaleY: { from: 1, to: 1.2 },
+            duration: 2000,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+
+        // 求婚文字 - 更华丽的艺术字体
+        const proposalText = this.add.text(400, 250, '你愿意嫁给我吗？', {
+            fontSize: '52px',
+            fontFamily: 'Georgia, "Brush Script MT", "Times New Roman", "Microsoft YaHei", serif',
+            color: '#FFD700',
+            align: 'center',
+            fontStyle: 'italic bold',
+            shadow: {
+                offsetX: 4,
+                offsetY: 4,
+                color: '#B8860B',
+                blur: 15,
+                fill: true
+            }
+        }).setOrigin(0.5);
+
+        // 添加求婚文字的多层光晕效果
+        const textGlow1 = this.add.circle(400, 250, 120, 0xFFD700, 0.15);
+        const textGlow2 = this.add.circle(400, 250, 90, 0xFFA500, 0.25);
+        const textGlow3 = this.add.circle(400, 250, 60, 0xFFFF00, 0.1);
+
+        // 更复杂的脉动动画
         this.tweens.add({
             targets: proposalText,
-            scaleX: { from: 1, to: 1.1 },
-            scaleY: { from: 1, to: 1.1 },
-            duration: 1500,
+            scaleX: { from: 1, to: 1.15 },
+            scaleY: { from: 1, to: 1.15 },
+            duration: 1800,
+            yoyo: true,
+            repeat: -1,
+            ease: 'Sine.easeInOut'
+        });
+
+        // 光晕动画
+        this.tweens.add({
+            targets: [textGlow1, textGlow2, textGlow3],
+            alpha: { from: 0.15, to: 0.35 },
+            scaleX: { from: 1, to: 1.3 },
+            scaleY: { from: 1, to: 1.3 },
+            duration: 2200,
             yoyo: true,
             repeat: -1,
             ease: 'Sine.easeInOut'
@@ -329,9 +361,9 @@ export default class ProposalScene extends Phaser.Scene {
         const jewelryTypes = ['💎', '💍', '🔶', '🔷', '👑', '💰'];
         
         this.time.addEvent({
-            delay: 3000,
+            delay: 8000, // 增加延迟从3000到8000
             callback: () => {
-                if (this.jewelry.length < 5) {
+                if (this.jewelry.length < 3) { // 减少数量从5到3
                     const jewelry = this.add.text(
                         Phaser.Math.Between(0, 800),
                         -50,
@@ -348,7 +380,7 @@ export default class ProposalScene extends Phaser.Scene {
                         targets: [jewelry, glow],
                         y: 700,
                         rotation: Phaser.Math.PI2,
-                        duration: Phaser.Math.Between(8000, 12000),
+                        duration: Phaser.Math.Between(10000, 15000), // 增加持续时间
                         ease: 'Linear',
                         onUpdate: () => {
                             glow.x = jewelry.x;
@@ -373,9 +405,9 @@ export default class ProposalScene extends Phaser.Scene {
         const houseTypes = ['🏠', '🏡', '🏘️', '🏰', '🏛️'];
         
         this.time.addEvent({
-            delay: 6000,
+            delay: 15000, // 增加延迟从6000到15000
             callback: () => {
-                if (this.houses.length < 2) {
+                if (this.houses.length < 1) { // 减少数量从2到1
                     const house = this.add.text(
                         Phaser.Math.Between(0, 800),
                         -80,
@@ -394,7 +426,7 @@ export default class ProposalScene extends Phaser.Scene {
                         rotation: Phaser.Math.Between(-0.3, 0.3),
                         scaleX: { from: 0.5, to: 1.2 },
                         scaleY: { from: 0.5, to: 1.2 },
-                        duration: Phaser.Math.Between(12000, 18000),
+                        duration: Phaser.Math.Between(15000, 20000), // 增加持续时间
                         ease: 'Linear',
                         onUpdate: () => {
                             glow.x = house.x;
@@ -419,9 +451,9 @@ export default class ProposalScene extends Phaser.Scene {
         const animalTypes = ['🐱', '🐶', '🐰', '🦊', '🐻', '🐼', '🐨', '🦄'];
         
         this.time.addEvent({
-            delay: 4000,
+            delay: 10000, // 增加延迟从4000到10000
             callback: () => {
-                if (this.animals.length < 3) {
+                if (this.animals.length < 2) { // 减少数量从3到2
                     const animal = this.add.text(
                         Phaser.Math.Between(0, 800),
                         -50,
@@ -438,7 +470,7 @@ export default class ProposalScene extends Phaser.Scene {
                         targets: [animal, glow],
                         y: 700,
                         rotation: Phaser.Math.PI2,
-                        duration: Phaser.Math.Between(9000, 14000),
+                        duration: Phaser.Math.Between(12000, 18000), // 增加持续时间
                         ease: 'Linear',
                         onUpdate: () => {
                             glow.x = animal.x;
@@ -463,9 +495,9 @@ export default class ProposalScene extends Phaser.Scene {
         const heartTypes = ['💖', '💕', '💝', '💗', '💓'];
         
         this.time.addEvent({
-            delay: 1600,
+            delay: 4000, // 增加延迟从1600到4000
             callback: () => {
-                if (this.hearts.length < 8) {
+                if (this.hearts.length < 4) { // 减少数量从8到4
                     const heart = this.add.text(
                         Phaser.Math.Between(0, 800),
                         -50,
@@ -482,7 +514,7 @@ export default class ProposalScene extends Phaser.Scene {
                         targets: [heart, glow],
                         y: 700,
                         rotation: Phaser.Math.PI2,
-                        duration: Phaser.Math.Between(6000, 10000),
+                        duration: Phaser.Math.Between(8000, 12000), // 增加持续时间
                         ease: 'Linear',
                         onUpdate: () => {
                             glow.x = heart.x;
@@ -623,60 +655,194 @@ export default class ProposalScene extends Phaser.Scene {
     }
 
     private showYesResponse(): void {
-        // 清除屏幕，但保留背景元素
+        // 清除所有UI元素
         this.children.list.forEach((child: any) => {
             if (child.type === 'Text' || (child.getData && child.getData('isUI'))) {
                 child.destroy();
             }
         });
         
+        // 停止所有掉落效果
+        this.time.removeAllEvents();
+        
         // 创建彩虹庆祝背景
         this.createCelebrationBackground();
 
-        // 创建花束
-        const bouquet = this.add.text(400, 600, '💐', {
-            fontSize: '200px'
-        }).setOrigin(0.5);
-
-        // 花束上升动画
-        this.tweens.add({
-            targets: bouquet,
-            y: 300,
-            duration: 2000,
-            ease: 'Bounce.easeOut'
+        // 创建从地面升起爆炸的烟花秀
+        this.createGroundFireworksShow();
+        
+        // 创建金色粒子爆炸效果
+        this.time.delayedCall(3000, () => {
+            this.createGoldenParticleExplosion();
         });
+    }
 
-        // 添加文字提示
-        this.time.delayedCall(2500, () => {
-            const lookBackText = this.add.text(400, 200, '回头看 ❤️', {
-                fontSize: '52px',
-                fontFamily: 'Arial, "Microsoft YaHei", sans-serif',
-                color: '#FFD700',
-                shadow: {
-                    offsetX: 3,
-                    offsetY: 3,
-                    color: '#9370DB',
-                    blur: 10,
-                    fill: true
-                }
-            }).setOrigin(0.5);
+    private createGroundFireworksShow(): void {
+        // 创建多个从地面升起的烟花
+        const launchPositions = [100, 200, 300, 400, 500, 600, 700];
+        const colors = [
+            0xFF1493, // 深粉色
+            0xFFD700, // 金色
+            0x87CEEB, // 天蓝色
+            0x9370DB, // 紫色
+            0xFF6347, // 橙红色
+            0x32CD32, // 绿色
+            0xFF69B4  // 热粉色
+        ];
 
-            // 文字闪烁动画
-            this.tweens.add({
-                targets: lookBackText,
-                alpha: { from: 1, to: 0.5 },
-                duration: 1000,
-                yoyo: true,
-                repeat: -1
+        // 第一波烟花
+        launchPositions.forEach((x, index) => {
+            this.time.delayedCall(index * 300, () => {
+                this.launchGroundFirework(x, colors[index % colors.length]);
             });
         });
 
-        // 创建满屏幕开花效果
-        this.createFullScreenBloom();
+        // 第二波烟花（更密集）
+        this.time.delayedCall(3000, () => {
+            launchPositions.forEach((x, index) => {
+                this.time.delayedCall(index * 150, () => {
+                    this.launchGroundFirework(x + 50, colors[(index + 3) % colors.length]);
+                });
+            });
+        });
 
-        // 庆祝动画
-        this.createMassiveFireworks();
-        this.createGoldenParticleExplosion();
+        // 第三波烟花（最终高潮）
+        this.time.delayedCall(6000, () => {
+            for (let i = 0; i < 15; i++) {
+                this.time.delayedCall(i * 100, () => {
+                    const x = Phaser.Math.Between(100, 700);
+                    const color = colors[Phaser.Math.Between(0, colors.length - 1)];
+                    this.launchGroundFirework(x, color);
+                });
+            }
+        });
+    }
+
+    private launchGroundFirework(startX: number, color: number): void {
+        // 创建火箭轨迹
+        const rocket = this.add.circle(startX, 600, 3, color);
+        const trail: Phaser.GameObjects.GameObject[] = [];
+        
+        // 创建上升轨迹
+        const targetY = Phaser.Math.Between(150, 300);
+        const riseTime = Phaser.Math.Between(800, 1200);
+        
+        // 火箭上升动画
+        this.tweens.add({
+            targets: rocket,
+            y: targetY,
+            x: startX + Phaser.Math.Between(-30, 30), // 轻微的左右摆动
+            duration: riseTime,
+            ease: 'Power2.easeOut',
+            onUpdate: () => {
+                // 创建尾迹效果
+                if (Phaser.Math.Between(0, 100) > 70) {
+                    const trailParticle = this.add.circle(rocket.x, rocket.y, 2, color, 0.6);
+                    trail.push(trailParticle);
+                    
+                    this.tweens.add({
+                        targets: trailParticle,
+                        alpha: 0,
+                        scaleX: 0.1,
+                        scaleY: 0.1,
+                        duration: 500,
+                        onComplete: () => {
+                            trailParticle.destroy();
+                            const index = trail.indexOf(trailParticle);
+                            if (index > -1) trail.splice(index, 1);
+                        }
+                    });
+                }
+            },
+            onComplete: () => {
+                // 火箭到达最高点，开始爆炸
+                rocket.destroy();
+                this.createFireworkExplosion(rocket.x, rocket.y, color);
+                
+                // 清理尾迹
+                trail.forEach(particle => {
+                    if (particle && !particle.destroy) {
+                        particle.destroy();
+                    }
+                });
+            }
+        });
+    }
+
+    private createFireworkExplosion(x: number, y: number, baseColor: number): void {
+        const particleCount = Phaser.Math.Between(20, 30);
+        const color = new Phaser.Display.Color(baseColor);
+        const explosionColors = [
+            baseColor,
+            Phaser.Display.Color.GetColor(
+                Math.min(255, color.red + 50),
+                Math.min(255, color.green + 50),
+                Math.min(255, color.blue + 50)
+            ),
+            0xFFFFFF // 白色闪光
+        ];
+
+        // 创建中心闪光
+        const flash = this.add.circle(x, y, 30, 0xFFFFFF);
+        this.tweens.add({
+            targets: flash,
+            alpha: 0,
+            scaleX: 2,
+            scaleY: 2,
+            duration: 300,
+            onComplete: () => flash.destroy()
+        });
+
+        // 创建爆炸粒子
+        for (let i = 0; i < particleCount; i++) {
+            const angle = (i / particleCount) * Phaser.Math.PI2;
+            const distance = Phaser.Math.Between(50, 120);
+            const particleColor = explosionColors[Phaser.Math.Between(0, explosionColors.length - 1)];
+            const particleSize = Phaser.Math.Between(2, 5);
+            
+            const particle = this.add.circle(x, y, particleSize, particleColor);
+            
+            // 粒子爆炸动画
+            this.tweens.add({
+                targets: particle,
+                x: x + Math.cos(angle) * distance,
+                y: y + Math.sin(angle) * distance + Phaser.Math.Between(20, 60), // 重力效果
+                alpha: 0,
+                scaleX: { from: 1, to: 0.1 },
+                scaleY: { from: 1, to: 0.1 },
+                duration: Phaser.Math.Between(1000, 2000),
+                ease: 'Power2.easeOut',
+                onComplete: () => particle.destroy()
+            });
+
+            // 添加小的火花效果
+            if (Phaser.Math.Between(0, 100) > 60) {
+                const spark = this.add.circle(x, y, 1, 0xFFFFFF);
+                this.tweens.add({
+                    targets: spark,
+                    x: x + Math.cos(angle + 0.2) * (distance * 0.7),
+                    y: y + Math.sin(angle + 0.2) * (distance * 0.7) + 30,
+                    alpha: 0,
+                    duration: 800,
+                    ease: 'Power2.easeOut',
+                    onComplete: () => spark.destroy()
+                });
+            }
+        }
+
+        // 创建光环效果
+        const ring = this.add.circle(x, y, 10, baseColor, 0.5);
+        ring.setStrokeStyle(2, baseColor);
+        
+        this.tweens.add({
+            targets: ring,
+            scaleX: 8,
+            scaleY: 8,
+            alpha: 0,
+            duration: 1000,
+            ease: 'Power2.easeOut',
+            onComplete: () => ring.destroy()
+        });
     }
 
     private createCelebrationBackground(): void {
@@ -717,20 +883,6 @@ export default class ProposalScene extends Phaser.Scene {
             repeat: -1,
             ease: 'Sine.easeInOut'
         });
-    }
-
-    private createMassiveFireworks(): void {
-        // 创建大规模烟花庆祝
-        for (let i = 0; i < 8; i++) {
-            this.time.delayedCall(i * 500, () => {
-                // 同时在多个位置发射烟花
-                for (let j = 0; j < 3; j++) {
-                    this.time.delayedCall(j * 100, () => {
-                        this.launchFirework();
-                    });
-                }
-            });
-        }
     }
 
     private createGoldenParticleExplosion(): void {
@@ -809,80 +961,6 @@ export default class ProposalScene extends Phaser.Scene {
                 ease: 'Power2.easeOut',
                 onComplete: () => particle.destroy()
             });
-        }
-    }
-
-    private createFullScreenBloom(): void {
-        const flowers = ['🌹', '🌷', '🌸', '🌺', '🌻', '🌼', '💐', '🌹', '🌷', '🌸'];
-        const gridSize = 8; // 8x8 网格
-        const cellWidth = 800 / gridSize;
-        const cellHeight = 600 / gridSize;
-
-        // 创建网格开花效果
-        for (let row = 0; row < gridSize; row++) {
-            for (let col = 0; col < gridSize; col++) {
-                const x = col * cellWidth + cellWidth / 2;
-                const y = row * cellHeight + cellHeight / 2;
-                const delay = (row + col) * 100; // 对角线延迟
-
-                // 创建花朵
-                const flower = this.add.text(x, y, flowers[Phaser.Math.Between(0, flowers.length - 1)], {
-                    fontSize: '40px'
-                }).setOrigin(0.5).setAlpha(0);
-
-                // 花朵绽放动画
-                this.tweens.add({
-                    targets: flower,
-                    alpha: { from: 0, to: 1 },
-                    scale: { from: 0, to: 1.2 },
-                    duration: 1000,
-                    delay: delay,
-                    ease: 'Back.easeOut',
-                    onComplete: () => {
-                        // 花朵呼吸动画
-                        this.tweens.add({
-                            targets: flower,
-                            scale: { from: 1.2, to: 1 },
-                            duration: 1500,
-                            yoyo: true,
-                            repeat: -1,
-                            ease: 'Sine.easeInOut'
-                        });
-                    }
-                });
-
-                // 添加花瓣效果
-                this.time.delayedCall(delay + 500, () => {
-                    for (let i = 0; i < 4; i++) {
-                        const petal = this.add.text(x, y, '🌸', {
-                            fontSize: '20px'
-                        }).setOrigin(0.5).setAlpha(0);
-
-                        const angle = (i * Math.PI / 2) + Phaser.Math.Between(-0.2, 0.2);
-                        const distance = Phaser.Math.Between(30, 50);
-
-                        this.tweens.add({
-                            targets: petal,
-                            x: x + Math.cos(angle) * distance,
-                            y: y + Math.sin(angle) * distance,
-                            alpha: { from: 0, to: 0.8 },
-                            scale: { from: 0, to: 1 },
-                            duration: 1500,
-                            ease: 'Back.easeOut',
-                            onComplete: () => {
-                                this.tweens.add({
-                                    targets: petal,
-                                    alpha: 0,
-                                    y: petal.y - 20,
-                                    duration: 1000,
-                                    delay: 500,
-                                    onComplete: () => petal.destroy()
-                                });
-                            }
-                        });
-                    }
-                });
-            }
         }
     }
 }
