@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
 
 export class LadyCharacter extends Phaser.GameObjects.Sprite {
-    private currentState: string = 'idle';
+    public currentState: string = 'idle';
     private isMoving: boolean = false;
     private isAttacking: boolean = false;
+    private isDead: boolean = false;
     private moveSpeed: number = 200;
     private facingRight: boolean = true;
     private isJumping: boolean = false;
@@ -69,7 +70,7 @@ export class LadyCharacter extends Phaser.GameObjects.Sprite {
      */
     public playAttack(): Promise<void> {
         return new Promise((resolve) => {
-            if (this.isMoving || this.isJumping || this.isAttacking) {
+            if (this.isMoving || this.isJumping || this.isAttacking || this.isDead) {
                 resolve();
                 return;
             }
@@ -89,14 +90,22 @@ export class LadyCharacter extends Phaser.GameObjects.Sprite {
     /**
      * 播放死亡动画
      */
-    public playDead(): void {
-        if (this.isMoving || this.isJumping || this.isAttacking) return;
-        this.playAnimation('dead');
+    public playDead(): Promise<void> {
+        return new Promise((resolve) => {
+            if (this.isMoving || this.isJumping || this.isAttacking || this.isDead) {
+                resolve();
+                return;
+            }
 
-        // 监听动画完成事件
-        this.once('animationcomplete', () => {
-            // 死亡动画播放完后保持在最后一帧
-            this.stop();
+            this.isDead = true;
+            this.playAnimation('dead');
+
+            // 监听动画完成事件
+            this.once('animationcomplete', () => {
+                // 死亡动画播放完后保持在最后一帧
+                this.stop();
+                resolve();
+            });
         });
     }
 
@@ -122,7 +131,7 @@ export class LadyCharacter extends Phaser.GameObjects.Sprite {
      */
     public performJump(): Promise<void> {
         return new Promise((resolve) => {
-            if (this.isJumping || this.isAttacking) {
+            if (this.isMoving || this.isAttacking || this.isDead) {
                 resolve();
                 return;
             }
@@ -163,7 +172,7 @@ export class LadyCharacter extends Phaser.GameObjects.Sprite {
      */
     public moveToPosition(targetX: number, targetY: number, useRunning: boolean = false): Promise<void> {
         return new Promise((resolve) => {
-            if (this.isMoving || this.isJumping || this.isAttacking) {
+            if (this.isMoving || this.isJumping || this.isAttacking || this.isDead) {
                 resolve();
                 return;
             }
@@ -197,21 +206,6 @@ export class LadyCharacter extends Phaser.GameObjects.Sprite {
     }
 
     /**
-     * 播放庆祝动画
-     */
-    public async playCelebration(): Promise<void> {
-        if (this.isMoving || this.isJumping || this.isAttacking) return;
-
-        // 执行三次跳跃
-        for (let i = 0; i < 3; i++) {
-            await this.performJump();
-            if (i < 2) { // 在跳跃之间添加短暂延迟
-                await new Promise(resolve => setTimeout(resolve, 100));
-            }
-        }
-    }
-
-    /**
      * 重置角色状态
      */
     public resetCharacter(): void {
@@ -223,6 +217,7 @@ export class LadyCharacter extends Phaser.GameObjects.Sprite {
         this.isMoving = false;
         this.isJumping = false;
         this.isAttacking = false;
+        this.isDead = false;
         this.lastClickX = this.x;  // 重置最后点击位置为当前位置
         this.playAnimation('idle');
     }

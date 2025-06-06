@@ -95,7 +95,7 @@ export class SpriteManager {
                 start: 0, 
                 end: 7 
             }),
-            frameRate: 12,
+            frameRate: 8,
             repeat: 0
         });
     }
@@ -118,8 +118,8 @@ export class SpriteManager {
                 start: 0, 
                 end: 5 
             }),
-            frameRate: 12,
-            repeat: 3
+            frameRate: 6,
+            repeat: 0
         });
     }
 
@@ -145,56 +145,6 @@ export class SpriteManager {
             frameRate: 12,
             repeat: -1
         }); 
-    }
-
-    /**
-     * 为指定角色创建四个方向的动画
-     * 每个动作的精灵图包含四行，分别是：正面、左侧、右侧、背面
-     */
-    private createDirectionalAnimations(character: string, action: string, frameRate: number): void {
-        // 正面动画（第一行，0-7帧）
-        this.scene.anims.create({
-            key: `${character}_${action}_front`,
-            frames: this.scene.anims.generateFrameNumbers(`${character}_${action}`, { 
-                start: 0, 
-                end: 7 
-            }),
-            frameRate: frameRate,
-            repeat: -1
-        });
-
-        // 左侧动画（第二行，8-15帧）
-        this.scene.anims.create({
-            key: `${character}_${action}_left`,
-            frames: this.scene.anims.generateFrameNumbers(`${character}_${action}`, { 
-                start: 8, 
-                end: 15 
-            }),
-            frameRate: frameRate,
-            repeat: -1
-        });
-
-        // 右侧动画（第三行，16-23帧）
-        this.scene.anims.create({
-            key: `${character}_${action}_right`,
-            frames: this.scene.anims.generateFrameNumbers(`${character}_${action}`, { 
-                start: 16, 
-                end: 23 
-            }),
-            frameRate: frameRate,
-            repeat: -1
-        });
-
-        // 背面动画（第四行，24-31帧）
-        this.scene.anims.create({
-            key: `${character}_${action}_back`,
-            frames: this.scene.anims.generateFrameNumbers(`${character}_${action}`, { 
-                start: 24, 
-                end: 31 
-            }),
-            frameRate: frameRate,
-            repeat: -1
-        });
     }
 
     /**
