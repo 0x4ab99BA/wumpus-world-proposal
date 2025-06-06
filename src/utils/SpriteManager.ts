@@ -21,38 +21,39 @@ export class SpriteManager {
      * 您需要将角色图片保存到 public/assets/sprites/ 目录下
      */
     preloadSprites(): void {
-        // 加载角色精灵图集 - 每个动作一个图片，包含四行动画（前、左、右、后）
-        this.scene.load.spritesheet('girl_idle', 'assets/sprites/girl_idle.png', {
-            frameWidth: 64,
-            frameHeight: 128
-        });
-
-        this.scene.load.spritesheet('girl_walk', 'assets/sprites/girl_walking.png', {
-            frameWidth: 64,
-            frameHeight: 128
-        });
-
-        this.scene.load.spritesheet('girl_run', 'assets/sprites/girl_running.png', {
-            frameWidth: 64,
-            frameHeight: 128
-        });
-
         // 加载lady精灵图集
+        this.scene.load.spritesheet('lady_attack', 'assets/sprites/lady_attack.png', {
+            frameWidth: 128,
+            frameHeight: 128
+        });
+
+        this.scene.load.spritesheet('lady_dead', 'assets/sprites/lady_dead.png', {
+            frameWidth: 128,
+            frameHeight: 128
+        });
+
+        
         this.scene.load.spritesheet('lady_idle', 'assets/sprites/lady_idle.png', {
-            frameWidth: 64,
-            frameHeight: 256
+            frameWidth: 128,
+            frameHeight: 128
         });
 
-        this.scene.load.spritesheet('lady_walk', 'assets/sprites/lady_walking.png', {
-            frameWidth: 64,
-            frameHeight: 256
+        this.scene.load.spritesheet('lady_jump', 'assets/sprites/lady_jump.png', {
+            frameWidth: 128,
+            frameHeight: 128
+        });
+        
+        this.scene.load.spritesheet('lady_run', 'assets/sprites/lady_run.png', {
+            frameWidth: 128,
+            frameHeight: 128
         });
 
-        this.scene.load.spritesheet('lady_run', 'assets/sprites/lady_running.png', {
-            frameWidth: 64,
-            frameHeight: 256
+        this.scene.load.spritesheet('lady_walk', 'assets/sprites/lady_walk.png', {
+            frameWidth: 128,
+            frameHeight: 128
         });
 
+    
         // 加载怪物精灵图集
         this.scene.load.spritesheet('chomp_idle', 'assets/sprites/chomp_idle.png', {
             frameWidth: 32,
@@ -64,18 +65,86 @@ export class SpriteManager {
      * 创建角色动画
      */
     createAnimations(): void {
-        // 创建girl角色动画
-        this.createDirectionalAnimations('girl', 'idle', 8);
-        this.createDirectionalAnimations('girl', 'walk', 12);
-        this.createDirectionalAnimations('girl', 'run', 16);
-
-        // 创建lady角色动画
-        this.createDirectionalAnimations('lady', 'idle', 8);
-        this.createDirectionalAnimations('lady', 'walk', 12);
-        this.createDirectionalAnimations('lady', 'run', 16);
-
+        this.createLadyAttackAnimations();
+        this.createLadyDeadAnimations();
+        this.createLadyIdleAnimations();
+        this.createLadyJumpAnimations();
+        this.createLadyRunAnimations();
+        this.createLadyWalkAnimations();
+    
         // 创建怪物动画
         this.createMonsterAnimations();
+    }
+
+    private createLadyAttackAnimations(): void {
+        this.scene.anims.create({
+            key: 'lady_attack',
+            frames: this.scene.anims.generateFrameNumbers('lady_attack', { 
+                start: 0, 
+                end: 5 
+            }),
+            frameRate: 12,
+            repeat: 0
+        });
+    }
+
+    private createLadyDeadAnimations(): void {
+        this.scene.anims.create({
+            key: 'lady_dead',
+            frames: this.scene.anims.generateFrameNumbers('lady_dead', { 
+                start: 0, 
+                end: 7 
+            }),
+            frameRate: 12,
+            repeat: 0
+        });
+    }
+    private createLadyIdleAnimations(): void {
+        this.scene.anims.create({
+            key: 'lady_idle',
+            frames: this.scene.anims.generateFrameNumbers('lady_idle', { 
+                start: 0, 
+                end: 4 
+            }),
+            frameRate: 8,
+            repeat: -1
+        });
+    }
+
+    private createLadyJumpAnimations(): void {
+        this.scene.anims.create({
+            key: 'lady_jump',
+            frames: this.scene.anims.generateFrameNumbers('lady_jump', { 
+                start: 0, 
+                end: 5 
+            }),
+            frameRate: 12,
+            repeat: 3
+        });
+    }
+
+    private createLadyRunAnimations(): void {
+        this.scene.anims.create({
+            key: 'lady_run',
+            frames: this.scene.anims.generateFrameNumbers('lady_run', { 
+                start: 0, 
+                end: 5 
+            }),
+            frameRate: 16,
+            repeat: -1
+        });
+    }
+
+    private createLadyWalkAnimations(): void{
+        this.scene.anims.create({
+            key: 'lady_walk',
+            frames: this.scene.anims.generateFrameNumbers('lady_walk', { 
+                start: 0, 
+                end: 5 
+            }),
+            frameRate: 12,
+            repeat: -1
+        }); 
     }
 
     /**
