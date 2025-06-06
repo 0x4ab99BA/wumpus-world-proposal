@@ -20,14 +20,13 @@ export default class GameScene extends Phaser.Scene {
     private gridSize: number = 4;
     private cellSize: number = 120;
     private offsetX: number = 160;
-    private offsetY: number = 80;
+    private offsetY: number = 30;
 
     // UI elements
     private lady!: LadyCharacter;
     private wumpus!: StaticMonster;
 
     private gridGraphics!: Phaser.GameObjects.Graphics;
-    private statusText!: Phaser.GameObjects.Text;
     private perceptText!: Phaser.GameObjects.Text;
     private spriteManager!: SpriteManager;
     
@@ -220,17 +219,8 @@ export default class GameScene extends Phaser.Scene {
     }
 
     private createUI(): void {
-
-        // 状态文本
-        this.statusText = this.add.text(50, 520, '', {
-            fontSize: '16px',
-            color: '#ffffff',
-            backgroundColor: '#2196F3',
-            padding: { x: 10, y: 5 }
-        });
-
         // 感知信息
-        this.perceptText = this.add.text(50, 550, '', {
+        this.perceptText = this.add.text(160, 520, '', {
             fontSize: '14px',
             color: '#ffffff',
             backgroundColor: '#FF9800',
@@ -347,7 +337,7 @@ export default class GameScene extends Phaser.Scene {
 
         // 检查恶臭（相邻房间有Wumpus）
         if (this.isAdjacent(playerGridX, playerGridY, this.gameState.wumpusGridX, this.gameState.wumpusGridY)) {
-            percepts.push('🦨 恶臭');
+            percepts.push('🤢 恶臭');
         }
 
         // 检查闪光（当前房间有金子）
@@ -376,9 +366,6 @@ export default class GameScene extends Phaser.Scene {
             this.showPerceptIcon(this.gameState.playerGridX, this.gameState.playerGridY, percepts);
         }
         
-        // 更新状态文本
-        this.statusText.setText(`位置: [${this.gameState.playerGridX}, ${this.gameState.playerGridY}]`);
-
         // 更新感知信息
         if (percepts.length > 0) {
             this.perceptText.setText(`感知: ${percepts.join(', ')}`);
