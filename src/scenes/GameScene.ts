@@ -13,6 +13,7 @@ interface GameState {
     pits: { x: number; y: number }[];
     gameOver: boolean;
     foundGold: boolean;
+    wumpusAlive: boolean; // 新增：跟踪Wumpus是否存活
 }
 
 export default class GameScene extends Phaser.Scene {
@@ -33,6 +34,7 @@ export default class GameScene extends Phaser.Scene {
     // Grid visualization
     private gridCells: Phaser.GameObjects.Rectangle[][] = [];
     private perceptIcons: Phaser.GameObjects.Text[][] = [];
+    private attackIcons: { left: Phaser.GameObjects.Text; right: Phaser.GameObjects.Text } | null = null;
     private isMoving: boolean = false;
 
     constructor() {
@@ -48,7 +50,8 @@ export default class GameScene extends Phaser.Scene {
             goldGridY: 0,
             pits: [],
             gameOver: false,
-            foundGold: false
+            foundGold: false,
+            wumpusAlive: true // 初始时Wumpus是活着的
         };
     }
 
@@ -79,6 +82,9 @@ export default class GameScene extends Phaser.Scene {
         
         // 设置鼠标点击事件
         this.setupMouseInput();
+        
+        // 创建攻击图标
+        this.createAttackIcons();
         
         // 更新显示
         this.updateDisplay();
@@ -226,6 +232,193 @@ export default class GameScene extends Phaser.Scene {
             backgroundColor: '#FF9800',
             padding: { x: 10, y: 5 }
         });
+
+        // 添加攻击说明
+        this.add.text(160, 550, '🗡️ 攻击说明：点击攻击图标可攻击相邻格子的Wumpus', {
+            fontSize: '12px',
+            color: '#ffffff',
+            backgroundColor: '#2196F3',
+            padding: { x: 10, y: 5 }
+        });
+    }
+
+    private createAttackIcons(): void {
+        // 创建左右攻击图标，初始时隐藏
+        const playerScreenPos = this.gridToScreenPosition(this.gameState.playerGridX, this.gameState.playerGridY);
+        
+        // 左侧攻击图标
+        const leftAttackIcon = this.add.text(
+            playerScreenPos.x - 70, 
+            playerScreenPos.y + 30, 
+            '⚔️', 
+            {
+                fontSize: '32px',
+                backgroundColor: '#FF5722',
+                padding: { x: 8, y: 4 }
+            }
+        ).setOrigin(0.5).setInteractive({ useHandCursor: true }).setVisible(false);
+
+        // 右侧攻击图标
+        const rightAttackIcon = this.add.text(
+            playerScreenPos.x + 70, 
+            playerScreenPos.y + 30, 
+            '⚔️', 
+            {
+                fontSize: '32px',
+                backgroundColor: '#FF5722',
+                padding: { x: 8, y: 4 }
+            }
+        ).setOrigin(0.5).setInteractive({ useHandCursor: true }).setVisible(false);
+
+        // 设置攻击图标事件
+        leftAttackIcon.on('pointerdown', () => this.handleAttack('left'));
+        rightAttackIcon.on('pointerdown', () => this.handleAttack('right'));
+
+        // 悬停效果
+        leftAttackIcon.on('pointerover', () => {
+            leftAttackIcon.setStyle({ backgroundColor: '#D32F2F' });
+        });
+        leftAttackIcon.on('pointerout', () => {
+            leftAttackIcon.setStyle({ backgroundColor: '#FF5722' });
+        });
+
+        rightAttackIcon.on('pointerover', () => {
+            rightAttackIcon.setStyle({ backgroundColor: '#D32F2F' });
+        });
+        rightAttackIcon.on('pointerout', () => {
+            rightAttackIcon.setStyle({ backgroundColor: '#FF5722' });
+        });
+
+        this.attackIcons = {
+            left: leftAttackIcon,
+            right: rightAttackIcon
+        };
+    }
+
+    private updateAttackIcons(): void {
+        if (!this.attackIcons) return;
+
+        const playerScreenPos = this.gridToScreenPosition(this.gameState.playerGridX, this.gameState.playerGridY);
+        
+        // 更新攻击图标位置
+        this.attackIcons.left.setPosition(playerScreenPos.x - 70, playerScreenPos.y + 30);
+        this.attackIcons.right.setPosition(playerScreenPos.x + 70, playerScreenPos.y + 30);
+
+        // 检查是否有相邻的Wumpus可以攻击
+        const canAttackLeft = this.canAttackDirection('left');
+        const canAttackRight = this.canAttackDirection('right');
+
+        // 显示/隐藏攻击图标
+        this.attackIcons.left.setVisible(canAttackLeft && this.gameState.wumpusAlive);
+        this.attackIcons.right.setVisible(canAttackRight && this.gameState.wumpusAlive);
+    }
+
+    private canAttackDirection(direction: 'left' | 'right'): boolean {
+        const { playerGridX, playerGridY } = this.gameState;
+        let targetX = playerGridX;
+
+        if (direction === 'left') {
+            targetX = playerGridX - 1;
+        } else {
+            targetX = playerGridX + 1;
+        }
+
+        // 检查目标位置是否在边界内
+        if (targetX < 1 || targetX > this.gridSize) {
+            return false;
+        }
+
+        // 检查目标位置是否有Wumpus
+        return targetX === this.gameState.wumpusGridX && 
+               playerGridY === this.gameState.wumpusGridY && 
+               this.gameState.wumpusAlive;
+    }
+
+    private async handleAttack(direction: 'left' | 'right'): Promise<void> {
+        if (this.isMoving || this.gameState.gameOver || this.gameState.foundGold || !this.gameState.wumpusAlive) {
+            return;
+        }
+
+        // 检查是否可以攻击
+        if (!this.canAttackDirection(direction)) {
+            this.showMessage('🚫 这个方向没有Wumpus可以攻击！', 0xFF5722);
+            return;
+        }
+
+        this.isMoving = true;
+
+        // 播放攻击动画
+        await this.lady.playAttack();
+
+        // 杀死Wumpus
+        this.killWumpus();
+
+        this.isMoving = false;
+    }
+
+    private killWumpus(): void {
+        if (!this.gameState.wumpusAlive) return;
+
+        // 标记Wumpus为死亡
+        this.gameState.wumpusAlive = false;
+
+        // 在Wumpus位置显示死亡特效
+        const wumpusScreenPos = this.gridToScreenPosition(this.gameState.wumpusGridX, this.gameState.wumpusGridY);
+        
+        // 显示Wumpus并播放死亡特效
+        this.wumpus.setVisible(true);
+        this.wumpus.setTint(0x666666); // 变灰表示死亡
+
+        // 创建击杀特效
+        const killEffect = this.add.circle(wumpusScreenPos.x, wumpusScreenPos.y, 20, 0xFF0000, 0.8);
+        this.tweens.add({
+            targets: killEffect,
+            scaleX: 3,
+            scaleY: 3,
+            alpha: 0,
+            duration: 1000,
+            ease: 'Power2.easeOut',
+            onComplete: () => killEffect.destroy()
+        });
+
+        // 添加击杀文字效果
+        const killText = this.add.text(wumpusScreenPos.x, wumpusScreenPos.y - 50, '💀 WUMPUS\n击杀！', {
+            fontSize: '20px',
+            color: '#FF0000',
+            align: 'center',
+            fontStyle: 'bold',
+            shadow: {
+                offsetX: 2,
+                offsetY: 2,
+                color: '#000000',
+                blur: 3,
+                fill: true
+            }
+        }).setOrigin(0.5);
+
+        // 文字动画效果
+        this.tweens.add({
+            targets: killText,
+            y: wumpusScreenPos.y - 80,
+            alpha: 0,
+            duration: 2000,
+            ease: 'Power2.easeOut',
+            onComplete: () => killText.destroy()
+        });
+
+        // 显示击杀消息
+        this.showMessage('⚔️ 成功击杀Wumpus！现在可以安全探索了！', 0x4CAF50);
+
+        // 隐藏攻击图标
+        this.updateAttackIcons();
+        
+        // 更新显示
+        this.updateDisplay();
+
+        // 延迟后隐藏Wumpus尸体
+        this.time.delayedCall(3000, () => {
+            this.wumpus.setVisible(false);
+        });
     }
 
     private setupMouseInput(): void {
@@ -282,6 +475,7 @@ export default class GameScene extends Phaser.Scene {
         // 检查游戏状态
         this.checkGameState();
         this.updateDisplay();
+        this.updateAttackIcons();
     }
 
     private checkGameState(): void {
@@ -297,8 +491,10 @@ export default class GameScene extends Phaser.Scene {
             return;
         }
 
-        // 检查是否遇到Wumpus
-        if (playerGridX === this.gameState.wumpusGridX && playerGridY === this.gameState.wumpusGridY) {
+        // 检查是否遇到Wumpus（只有在Wumpus还活着的时候）
+        if (playerGridX === this.gameState.wumpusGridX && 
+            playerGridY === this.gameState.wumpusGridY && 
+            this.gameState.wumpusAlive) {
             this.gameState.gameOver = true;
             this.showMessage('💀 被Wumpus吃掉了！游戏结束！', 0xF44336);
             this.lady.playDead();
@@ -335,8 +531,9 @@ export default class GameScene extends Phaser.Scene {
         }
         if (hasBreeze) percepts.push('💨 微风');
 
-        // 检查恶臭（相邻房间有Wumpus）
-        if (this.isAdjacent(playerGridX, playerGridY, this.gameState.wumpusGridX, this.gameState.wumpusGridY)) {
+        // 检查恶臭（相邻房间有活着的Wumpus）
+        if (this.gameState.wumpusAlive && 
+            this.isAdjacent(playerGridX, playerGridY, this.gameState.wumpusGridX, this.gameState.wumpusGridY)) {
             percepts.push('🤢 恶臭');
         }
 
@@ -372,6 +569,11 @@ export default class GameScene extends Phaser.Scene {
         } else {
             this.perceptText.setText('感知: 无异常');
         }
+
+        // 如果Wumpus已死，显示额外信息
+        if (!this.gameState.wumpusAlive) {
+            this.perceptText.setText(this.perceptText.text + ' | ⚔️ Wumpus已击杀');
+        }
     }
 
     private hideAllPerceptIcons(): void {
@@ -392,7 +594,7 @@ export default class GameScene extends Phaser.Scene {
             let iconText = '';
             for (const percept of percepts) {
                 if (percept.includes('微风')) iconText += '💨';
-                if (percept.includes('恶臭')) iconText += '🤢'; // 使用恶心表情作为恶臭图标
+                if (percept.includes('恶臭')) iconText += '🤢';
                 if (percept.includes('闪光')) iconText += '✨';
             }
             
