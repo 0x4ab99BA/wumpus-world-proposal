@@ -722,7 +722,53 @@ export default class GameScene extends Phaser.Scene {
         }).setOrigin(0.5).setInteractive();
 
         restartText.on('pointerdown', () => {
+            this.resetGame();
             this.scene.restart();
         });
+    }
+
+    private resetGame(): void {
+        // 重置游戏状态
+        this.gameState = {
+            playerGridX: 1,
+            playerGridY: 1,
+            wumpusGridX: 0,
+            wumpusGridY: 0,
+            goldGridX: 0,
+            goldGridY: 0,
+            pits: [],
+            gameOver: false,
+            foundGold: false,
+            wumpusAlive: true
+        };
+
+        // 重置角色状态
+        if (this.lady) {
+            this.lady.resetCharacter();
+        }
+
+        // 重置Wumpus状态
+        if (this.wumpus) {
+            this.wumpus.setVisible(false);
+            this.wumpus.setTint(0xffffff);
+        }
+
+        // 清除所有UI元素
+        if (this.perceptText) {
+            this.perceptText.setText('');
+        }
+
+        // 隐藏所有感知图标
+        this.hideAllPerceptIcons();
+
+        // 隐藏所有攻击图标
+        Object.values(this.attackIcons).forEach(icon => {
+            if (icon) {
+                icon.setVisible(false);
+            }
+        });
+
+        // 重置移动状态
+        this.isMoving = false;
     }
 }
